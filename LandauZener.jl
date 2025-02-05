@@ -159,7 +159,7 @@ end
 
 # ╔═╡ 0fc76562-437c-4d21-ba25-482c66bd7642
 md"""
-We analyze the dynamics both in terms of a projection onto the canonical basis as well as onto the dynamic eigenstates:
+We analyze the dynamics both in terms of a projection onto the canonical basis as well as onto the dynamic eigenstates.
 """
 
 # ╔═╡ c388ffa1-a622-41df-9876-02da77349734
@@ -196,7 +196,12 @@ we get the following dynamics:
 
 # ╔═╡ 8da560ce-9b3d-4ecd-b8a4-f6e4f45af207
 begin
-	function show_dynamics()
+	function show_dynamics(; Δ=Δ, α=α, Γ=Γ)
+		H = landau_zener_hamiltonian(; Δ, α);
+		T = Γ / α
+		tlist = collect(range(-T, T; length=1001))
+		H_initial = Array(evaluate(H, tlist[begin]))
+		Ψ = eigen(H_initial).vectors[:,1]
 		pop_dyn = propagate(
 			Ψ, H, tlist;
 			method=prop_method,
@@ -215,8 +220,8 @@ begin
 			title="proj. onto basis",
 			xlabel="time", ylabel="population"
 		)
-		P = exp(-2π*abs(Δ)^2/abs(α))
-		hline!(ax1, [P, 1-P]; label="", color="black", ls=:dash)
+		γ = exp(-2π*abs(Δ)^2/abs(α))
+		hline!(ax1, [γ, 1-γ]; label="", color="black", ls=:dash)
 		ax2 = plot(
 			tlist, pop_instantaneous';
 			label=["|⟨Ψ(t)|Ψ₀(t)⟩|²" "|⟨Ψ(t)|Ψ₁(t)⟩|²"],
@@ -224,7 +229,7 @@ begin
 			title="proj. onto eigenstates",
 			xlabel="time", ylabel=""
 		)
-		plot(ax1, ax2)
+		plot(ax1, ax2; plot_title="Δ = $Δ, α=$α, γ=$(round(γ; digits=4))")
 	end
 
 	show_dynamics()
@@ -238,6 +243,20 @@ On the left, we show the projection onto the canonical basis, and on the right, 
 * ``\Delta =`` $(select_Δ)
 * ``\alpha =`` $(select_α)
 """
+
+# ╔═╡ 9dd08174-86e6-40ce-b76b-649767baab41
+md"""
+Some alternative evolutions for different values of ``\Delta`` and ``\alpha``:
+"""
+
+# ╔═╡ 36ffcc5a-3273-4046-9356-ec7bdcc627be
+show_dynamics(Δ=1.0, α=0.1)
+
+# ╔═╡ 3a4e8b93-7192-4837-a5c8-f43b785a48b8
+show_dynamics(Δ=0.1, α=10.0)
+
+# ╔═╡ a104172a-83c1-4597-96aa-98dd9c398b4d
+show_dynamics(Δ=0.1, α=0.1)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -2932,11 +2951,15 @@ version = "1.4.1+2"
 # ╟─b377ca2b-1ca9-4e96-93a3-d002d38f0dfc
 # ╟─48d66912-134f-49f1-a5d8-8617c0f275eb
 # ╟─0fc76562-437c-4d21-ba25-482c66bd7642
-# ╠═c388ffa1-a622-41df-9876-02da77349734
+# ╟─c388ffa1-a622-41df-9876-02da77349734
 # ╟─45d3f8e7-455e-467e-9c6b-bf26496a4cec
 # ╟─c10991a2-8722-4a5b-8c7f-79b4a8229ef8
 # ╟─98cf7d00-010d-43c3-a750-af010c749903
 # ╟─8da560ce-9b3d-4ecd-b8a4-f6e4f45af207
 # ╟─437a5349-bf07-4f0f-9ff9-30c20affb7bf
+# ╟─9dd08174-86e6-40ce-b76b-649767baab41
+# ╟─36ffcc5a-3273-4046-9356-ec7bdcc627be
+# ╟─3a4e8b93-7192-4837-a5c8-f43b785a48b8
+# ╟─a104172a-83c1-4597-96aa-98dd9c398b4d
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
