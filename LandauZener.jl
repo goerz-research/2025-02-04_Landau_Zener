@@ -31,7 +31,7 @@ end
 
 # ╔═╡ 4e470eb8-6a34-4ba4-8037-ed11cbf9e4e3
 md"""
-# Review of Laundau Zener Transitions
+# Review of Landau Zener Transitions
 """
 
 # ╔═╡ 821cf12f-afdf-481e-9f06-9ae9b34d0f20
