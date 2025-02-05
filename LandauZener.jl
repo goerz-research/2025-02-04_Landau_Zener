@@ -17,7 +17,7 @@ macro bind(def, element)
 end
 
 # ╔═╡ a8e07fb5-9671-471e-8f00-fe572dc5704d
-begin 
+begin
 	using PlutoUI
 	using Plots
 	using QuantumControl
@@ -62,7 +62,7 @@ end
 
 # ╔═╡ 8e0a98a1-dab6-433b-b86a-ed9c9a197187
 md"""
-We choose a value for the static coupling `Δ`, and 
+We choose a value for the static coupling `Δ`, and
 for the rate `α` at which we sweep the energy levels:
 
 * ``\Delta =`` $(select_Δ = @bind Δ Select([1.0, 0.1]))
@@ -70,7 +70,7 @@ for the rate `α` at which we sweep the energy levels:
 """
 
 # ╔═╡ a1a58c11-9753-49fc-8e55-af9258003602
-H = landau_zener_hamiltonian(; Δ, α)
+H = landau_zener_hamiltonian(; Δ, α);
 
 # ╔═╡ 0ecceb63-c384-4149-83c5-663c8c67951c
 md"""
@@ -148,7 +148,7 @@ tlist = collect(range(-T, T; length=1001))
 
 # ╔═╡ b377ca2b-1ca9-4e96-93a3-d002d38f0dfc
 md"""
-The initial state is going to be the first eigenstate, which for $t_0 \rightarrow -\infty$ becomes the canonical basis state $|0\rangle$.
+The initial state is going to be the first eigenstate, which for $t_0 = -T \rightarrow -\infty$ becomes the canonical basis state $|0\rangle$.
 """
 
 # ╔═╡ 48d66912-134f-49f1-a5d8-8617c0f275eb
@@ -167,7 +167,7 @@ begin
 	struct DynamicEigenstate
 		H
 	end
-	
+
 	function QuantumPropagators.Storage.map_observable(
 		observable::DynamicEigenstate,
 		tlist,
@@ -195,7 +195,7 @@ we get the following dynamics:
 """
 
 # ╔═╡ 8da560ce-9b3d-4ecd-b8a4-f6e4f45af207
-begin 
+begin
 	function show_dynamics()
 		pop_dyn = propagate(
 			Ψ, H, tlist;
@@ -226,18 +226,15 @@ begin
 		)
 		plot(ax1, ax2)
 	end
-	
+
 	show_dynamics()
-	
+
 end
 
 # ╔═╡ 437a5349-bf07-4f0f-9ff9-30c20affb7bf
 md"""
-On the left, we show the projection onto the canonical basis, and on the right, the projection onto the instantaneous eigenstates of ``H(t)``. Whether the evolution is adiabatic or diabatic depends on ``\Delta`` and ``\alpha``. The smaller ``\alpha`` and the larger ``\Delta``, the more adiabatic the dynamics. ``\Delta = 1``, ``\alpha = 0.1`` gives fully adiabatic dynamics, and ``\Delta = 0.1``, ``\alpha = 10`` gives (almost) fully diabatic solutions (the wave function jumps over the crossing). Anything in between leads to a superposition for ``t \rightarrow \infty``, given by ``\exp\left(-2π\frac{|\Delta|^2}{|\alpha|}\right)``. This value is indicated by the horizontal dashed lines in the left panel.
-"""
+On the left, we show the projection onto the canonical basis, and on the right, the projection onto the instantaneous eigenstates of ``H(t)``. Whether the evolution is adiabatic or diabatic depends on ``\Delta`` and ``\alpha``. The smaller ``\alpha`` and the larger ``\Delta``, the more adiabatic the dynamics. ``\Delta = 1``, ``\alpha = 0.1`` gives fully adiabatic dynamics, and ``\Delta = 0.1``, ``\alpha = 10`` gives (almost) fully diabatic solutions (the wave function jumps over the crossing). Anything in between leads to a superposition for ``t \rightarrow \infty``, given by ``\gamma = \exp\left(-2π\frac{|\Delta|^2}{|\alpha|}\right) = `` $(round(exp(-2π * abs(Δ)^2 / abs(α)^2); digits=4)). A value of 0 means "adiabatic", and a value of 1 means "diabatic". The values of ``\gamma`` and ``(1-\gamma)`` are indicated by the horizontal dashed lines in the left panel.
 
-# ╔═╡ b714681c-8c38-4b98-bd3c-93a6431bbceb
-md"""
 * ``\Delta =`` $(select_Δ)
 * ``\alpha =`` $(select_α)
 """
@@ -2941,6 +2938,5 @@ version = "1.4.1+2"
 # ╟─98cf7d00-010d-43c3-a750-af010c749903
 # ╟─8da560ce-9b3d-4ecd-b8a4-f6e4f45af207
 # ╟─437a5349-bf07-4f0f-9ff9-30c20affb7bf
-# ╟─b714681c-8c38-4b98-bd3c-93a6431bbceb
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
