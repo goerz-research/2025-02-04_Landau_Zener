@@ -23,6 +23,7 @@ begin
 	using QuantumControl
 	using QuantumControl: hamiltonian
 	using QuantumControl.Controls: evaluate
+	using QuantumControl.Shapes: flattop
 	using QuantumPropagators: QuantumPropagators, propagate, ExpProp
 	using LinearAlgebra: eigen, dot
 	⋅(a,b) = dot(a, b)
@@ -49,17 +50,18 @@ The Landau-Zener Hamiltonian is defined as:
 """
 
 # ╔═╡ 50e02181-6b96-4b17-ad1a-01bcf1432036
-function landau_zener_hamiltonian(; Δ, α)
+function landau_zener_hamiltonian(; Δ, α, T, t_r=0.0)
     H₀ = Float64[
-         0 Δ
-         Δ 0
+         0 1
+         1 0
     ]
     H₁ = Float64[
         0.5   0
          0  -0.5
     ]
 	ϵ(t; α=α) = α * t
-    return hamiltonian(H₀, (H₁, ϵ))
+	Δ_t(t; t_r=t_r) = Δ * flattop(t; T, t_rise=t_r, t₀=-T)
+    return hamiltonian((H₀, Δ_t), (H₁, ϵ))
 end
 
 # ╔═╡ 8e0a98a1-dab6-433b-b86a-ed9c9a197187
@@ -71,8 +73,10 @@ for the rate `α` at which we sweep the energy levels:
 * ``\alpha = `` $(select_α = @bind α Select([1.0, 0.1, 10.0]))
 """
 
-# ╔═╡ a1a58c11-9753-49fc-8e55-af9258003602
-H = landau_zener_hamiltonian(; Δ, α);
+# ╔═╡ 29320f2b-113e-4da5-9a4a-f425b98f0843
+md"""
+For now, we ignore the time `t_r` that could be used for switching the static coupling on and off.
+"""
 
 # ╔═╡ 0ecceb63-c384-4149-83c5-663c8c67951c
 md"""
@@ -81,6 +85,9 @@ We use a time grid that goes from ``-\infty`` to ``+\infty``. Numerically, that 
 
 # ╔═╡ 161eac9a-6ea7-423a-8256-887d993ca166
 T = Γ / α
+
+# ╔═╡ a1a58c11-9753-49fc-8e55-af9258003602
+H = landau_zener_hamiltonian(; Δ, α, T, t_r=0);
 
 # ╔═╡ 02af0114-398a-4da0-9e3c-9a673724b301
 md"""
@@ -106,16 +113,17 @@ Instead of looking at a particular point in time, we can make plots for differen
 # ╔═╡ ededba17-e3c3-473a-b237-f1d7fd3d8ecf
 begin
 	function show_eigen_plot()
-		local tlist = collect(range(-100.0, 100; length=201))
-		local H = landau_zener_hamiltonian(; Δ, α)
+		T = -100.0
+		local tlist = collect(range(-T, T; length=201))
+		local H = landau_zener_hamiltonian(; Δ, α, T, t_r=0.0)
 		local ϕ₀ = ComplexF64[1, 0]
 		local ϕ₁ = ComplexF64[0, 1]
 		eigensys = [
 			eigen(Array(evaluate(H, t)))
 			for t in tlist
 		]
-		eigvals0 = [es.values[1] for es in eigensys]
-		eigvals1 = [es.values[2] for es in eigensys]
+		eigvals0 = real.([es.values[1] for es in eigensys])
+		eigvals1 = real.([es.values[2] for es in eigensys])
 		eigstate0_0 = [abs2(es.vectors[:,1] ⋅ ϕ₀) for es in eigensys]
 		eigstate0_1 = [abs2(es.vectors[:,1] ⋅ ϕ₁) for es in eigensys]
 		eigstate1_0 = [abs2(es.vectors[:,2] ⋅ ϕ₀) for es in eigensys]
@@ -155,7 +163,7 @@ The initial state is going to be the first eigenstate, which for $t_0 = -T \righ
 
 # ╔═╡ 48d66912-134f-49f1-a5d8-8617c0f275eb
 Ψ = begin
-	local H = Array(evaluate(landau_zener_hamiltonian(; Δ, α), tlist[begin]))
+	local H = Array(evaluate(landau_zener_hamiltonian(; Δ, α, T), tlist[begin]))
 	eigen(H).vectors[:,1]
 end
 
@@ -198,9 +206,10 @@ we get the following dynamics:
 
 # ╔═╡ 8da560ce-9b3d-4ecd-b8a4-f6e4f45af207
 begin
-	function show_dynamics(; Δ=Δ, α=α, Γ=Γ)
-		H = landau_zener_hamiltonian(; Δ, α);
+	function show_dynamics(; Δ=Δ, α=α, Γ=Γ, t_r_fraction=0.0)
 		T = Γ / α
+		t_r = t_r_fraction * T
+		H = landau_zener_hamiltonian(; Δ, α, T, t_r);
 		tlist = collect(range(-T, T; length=1001))
 		H_initial = Array(evaluate(H, tlist[begin]))
 		Ψ = eigen(H_initial).vectors[:,1]
@@ -252,13 +261,31 @@ Some alternative evolutions for different values of ``\Delta`` and ``\alpha``:
 """
 
 # ╔═╡ 36ffcc5a-3273-4046-9356-ec7bdcc627be
-show_dynamics(Δ=1.0, α=0.1)
+show_dynamics(; Δ=1.0, α=0.1)
 
 # ╔═╡ 3a4e8b93-7192-4837-a5c8-f43b785a48b8
 show_dynamics(Δ=0.1, α=10.0)
 
 # ╔═╡ a104172a-83c1-4597-96aa-98dd9c398b4d
 show_dynamics(Δ=0.1, α=0.1)
+
+# ╔═╡ c00675f4-56bf-4d97-bc2d-16cf97a56f05
+md"""
+There is an interesting effect where the "wiggles" can also happen before the crossing point if we switch on the coupling, with a switch-on/-off time that is a fraction of $T$:
+
+``T/t_r =`` $(@bind t_r_fraction Slider(0:0.001:1.0; default=0.001, show_value=true))
+"""
+
+# ╔═╡ 61def5a3-9e38-4649-82db-707a6ae5f483
+show_dynamics(Δ=1.0, α=1.0, t_r_fraction=t_r_fraction)
+
+# ╔═╡ 09b66c02-13cc-4a5b-af82-e185c9252492
+md"""
+This also seems to have small effect on whether the asymptote is at ``\gamma``:
+"""
+
+# ╔═╡ f5db8a47-f121-4b15-b3b8-41335a0cfb98
+show_dynamics(Δ=0.1, α=0.1, t_r_fraction=t_r_fraction)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -2938,9 +2965,10 @@ version = "1.4.1+2"
 # ╟─86f3458d-9fe5-468a-a95f-a431fac7a86a
 # ╠═50e02181-6b96-4b17-ad1a-01bcf1432036
 # ╟─8e0a98a1-dab6-433b-b86a-ed9c9a197187
-# ╠═a1a58c11-9753-49fc-8e55-af9258003602
+# ╟─29320f2b-113e-4da5-9a4a-f425b98f0843
 # ╟─0ecceb63-c384-4149-83c5-663c8c67951c
 # ╟─161eac9a-6ea7-423a-8256-887d993ca166
+# ╠═a1a58c11-9753-49fc-8e55-af9258003602
 # ╟─02af0114-398a-4da0-9e3c-9a673724b301
 # ╟─58e862c1-0be9-405a-9eb3-71074d1687a2
 # ╟─7b5ee35c-5592-462f-8b89-948d8c33ee8f
@@ -2963,5 +2991,9 @@ version = "1.4.1+2"
 # ╟─36ffcc5a-3273-4046-9356-ec7bdcc627be
 # ╟─3a4e8b93-7192-4837-a5c8-f43b785a48b8
 # ╟─a104172a-83c1-4597-96aa-98dd9c398b4d
+# ╟─c00675f4-56bf-4d97-bc2d-16cf97a56f05
+# ╟─61def5a3-9e38-4649-82db-707a6ae5f483
+# ╟─09b66c02-13cc-4a5b-af82-e185c9252492
+# ╟─f5db8a47-f121-4b15-b3b8-41335a0cfb98
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
