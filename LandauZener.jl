@@ -39,6 +39,8 @@ md"""
 This notebook reviews some basics about [Landau-Zener transitions](https://en.wikipedia.org/wiki/Landau–Zener_formula), a.k.a "avoided crossings". In particular, it verifies the (usually under-discussed) _diabatic_ ("fast") dynamics where the adiabatic theorem does not hold and the wave function jumps through the avoided crossing. It also takes a look at how exactly the dynamics look in the intermediary regime, right at the point where adiabaticity breaks down.
 
 See also <https://appquantmech.quantumtinkerer.tudelft.nl/adiabatic_landau_zener/> (which appears to be buggy, but the general points being made there still stand).
+
+The source for this notebook is available [on GitHub](https://github.com/goerz-research/2025-02-04_Landau_Zener).
 """
 
 # ╔═╡ 86f3458d-9fe5-468a-a95f-a431fac7a86a
